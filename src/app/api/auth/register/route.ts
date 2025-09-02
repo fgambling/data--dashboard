@@ -1,0 +1,74 @@
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '../../../../../lib/prisma';
+import { hashPassword } from '../../../../../lib/password';
+
+/**
+ * Handle user registration requests
+ * POST /api/auth/register
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Read username and password from request body
+    const { username, password } = await request.json();
+
+    // Validate required fields
+    if (!username || !password) {
+      return NextResponse.json(
+        { error: 'Username and password are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: 'Password must be at least 6 characters' },
+        { status: 400 }
+      );
+    }
+
+    // Check if username already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { username }
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'Username already exists' },
+        { status: 409 }
+      );
+    }
+
+    // Hash password
+    const hashedPassword = await hashPassword(password);
+
+    // Create new user in database
+    const user = await prisma.user.create({
+      data: {
+        username,
+        password: hashedPassword
+      },
+      // Return only required fields (exclude password)
+      select: {
+        id: true,
+        username: true
+      }
+    });
+
+    // Return success response
+    return NextResponse.json(
+      { 
+        message: 'Registration successful',
+        user: user
+      },
+      { status: 201 }
+    );
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

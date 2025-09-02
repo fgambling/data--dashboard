@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DataSet {
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  products  Product[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+}
+
+model Product {
+  id             String      @id @unique
+  name           String
+  dailyRecords   DailyData[]
+  dataSetId      Int
+  dataSet        DataSet     @relation(fields: [dataSetId], references: [id], onDelete: Cascade)
+}
+
+model DailyData {
+  id                   Int      @id @default(autoincrement())
+  day                  Int
+  inventory            Int
+  procurementQuantity  Int
+  procurementPrice     Float
+  procurementAmount    Float    // 采购金额 = 采购数量 * 采购价格
+  salesQuantity        Int
+  salesPrice           Float
+  salesAmount          Float    // 销售金额 = 销售数量 * 销售价格
+  productId            String
+  product              Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, day])
+}
