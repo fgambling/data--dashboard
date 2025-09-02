@@ -162,7 +162,7 @@ export default function DashboardPage() {
     const sortedDays = Array.from(allDays).sort((a, b) => a - b);
 
     // Initialize chart data structure with days as x-axis
-    const chartDataMap = new Map<number, any>();
+    const chartDataMap = new Map<number, Record<string, string | number>>();
     sortedDays.forEach(day => {
       chartDataMap.set(day, { day: `Day ${day}` });
     });
@@ -256,7 +256,8 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`File "${file.name}" uploaded successfully! Created ${data.productsCount} products with ${data.recordsCount} records.`);
+        const daysInfo = data.daysProcessed ? ` (Days 1-${data.daysProcessed})` : '';
+        alert(`File "${file.name}" uploaded successfully! Created ${data.productsCount} products with ${data.recordsCount} records${daysInfo}.`);
         // Refresh the page to show new dataset
         window.location.reload();
       } else {

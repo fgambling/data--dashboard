@@ -11,7 +11,7 @@ import prisma from '../../../../lib/prisma';
  * @returns Unique product name
  */
 async function generateUniqueProductName(
-  tx: any,
+  tx: { product: { findFirst: (args: unknown) => Promise<unknown>; findMany: (args: unknown) => Promise<unknown[]> } },
   baseName: string,
   dataSetId: number
 ): Promise<string> {
@@ -71,6 +71,17 @@ async function generateUniqueProductName(
 /**
  * Handle file upload requests
  * POST /api/upload
+ *
+ * Expected Excel format:
+ * - ID: Product ID
+ * - Product Name: Product name
+ * - Opening Inventory: Initial inventory
+ * - Procurement Qty (Day X): Procurement quantity for day X
+ * - Procurement Price (Day X): Procurement price for day X
+ * - Sales Qty (Day X): Sales quantity for day X
+ * - Sales Price (Day X): Sales price for day X
+ *
+ * The system now automatically detects the maximum day number from column headers.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -94,10 +105,47 @@ export async function POST(request: NextRequest) {
         return rowData;
     });
 
+    // Detect maximum day number from headers
+    const detectMaxDay = (headers: string[]): number => {
+      let maxDay = 0;
+      const dayPatterns = [
+        /Procurement Qty \(Day (\d+)\)/i,
+        /Procurement Price \(Day (\d+)\)/i,
+        /Sales Qty \(Day (\d+)\)/i,
+        /Sales Price \(Day (\d+)\)/i
+      ];
+
+      headers.forEach(header => {
+        dayPatterns.forEach(pattern => {
+          const match = header.match(pattern);
+          if (match) {
+            const day = parseInt(match[1], 10);
+            if (day > maxDay) {
+              maxDay = day;
+            }
+          }
+        });
+      });
+
+      return maxDay;
+    };
+
+    const maxDay = detectMaxDay(headers);
+    console.log(`Detected maximum day: ${maxDay}`);
+
+    // Validate that we have at least Day 1 data
+    if (maxDay === 0) {
+      return NextResponse.json({
+        error: 'No valid day columns found. Please ensure your Excel file has columns like "Procurement Qty (Day 1)", "Sales Qty (Day 1)", etc.'
+      }, { status: 400 });
+    }
+
+    console.log(`Processing data for days 1-${maxDay}`);
+
 
     // Using a transaction ensures that if any part of the upload fails,
     // the entire operation is rolled back, preventing partial data saves.
-    const result: { dataSet: any; createdProducts: any[] } = await prisma.$transaction(async (tx: any) => {
+    const result: { dataSet: { id: number; name: string; createdAt: Date }; createdProducts: Array<{ id: string; name: string; dailyRecords: unknown[] }> } = await prisma.$transaction(async (tx: { product: { findFirst: (args: unknown) => Promise<unknown>; findMany: (args: unknown) => Promise<unknown[]>; create: (args: unknown) => Promise<unknown> }; dataSet: { create: (args: unknown) => Promise<unknown> } }) => {
       // 1. Create the DataSet record first
       const dataSet = await tx.dataSet.create({
         data: {
@@ -142,8 +190,8 @@ export async function POST(request: NextRequest) {
         // Start with opening inventory for day 1 calculations
         let currentInventory = openingInventory;
 
-        // 3. Loop through the days (Day 1, 2, 3 as per the file structure)
-        for (let day = 1; day <= 3; day++) {
+        // 3. Loop through the days (dynamically detected from file headers)
+        for (let day = 1; day <= maxDay; day++) {
           const procurementQty = parseInt(String(row[`Procurement Qty (Day ${day})`])) || 0;
           const procurementPrice = parseFloat(String(row[`Procurement Price (Day ${day})`])) || 0;
           const salesQty = parseInt(String(row[`Sales Qty (Day ${day})`])) || 0;
@@ -188,7 +236,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({
-      message: 'File uploaded and processed successfully!',
+      message: `File uploaded and processed successfully! Processed data for Days 1-${maxDay}.`,
       dataSet: {
         id: result.dataSet.id,
         name: result.dataSet.name,
@@ -199,6 +247,7 @@ export async function POST(request: NextRequest) {
         (sum: number, p: { dailyRecords: unknown[] }) => sum + p.dailyRecords.length,
         0
       ),
+      daysProcessed: maxDay,
     });
   } catch (error) {
     console.error('Upload error:', error);
