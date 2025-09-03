@@ -13,10 +13,8 @@ interface DataSet {
 }
 
 interface ChartData {
-  day: number;
-  inventory: number;
-  salesAmount: number;
-  procurementAmount: number;
+  day: string;
+  [key: string]: string | number; // Dynamic keys for product data
 }
 
 interface Product {
@@ -199,7 +197,7 @@ export default function DashboardPage() {
       });
     });
 
-    return Array.from(chartDataMap.values());
+    return Array.from(chartDataMap.values()) as ChartData[];
   }, [dataResponse?.rawProducts, selectedProductIds]);
 
   // Fetch chart data when selected dataset changes

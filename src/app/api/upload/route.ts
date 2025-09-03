@@ -11,7 +11,12 @@ import prisma from '../../../../lib/prisma';
  * @returns Unique product name
  */
 async function generateUniqueProductName(
-  tx: { product: { findFirst: (args: unknown) => Promise<unknown>; findMany: (args: unknown) => Promise<unknown[]> } },
+  tx: {
+    product: {
+      findFirst: (args: { where: { name: string; dataSetId: number } }) => Promise<{ name: string } | null>;
+      findMany: (args: { where: { dataSetId: number; OR: Array<{ name: string } | { name: { startsWith: string } }> }; select: { name: true } }) => Promise<Array<{ name: string }>>;
+    }
+  },
   baseName: string,
   dataSetId: number
 ): Promise<string> {
@@ -44,11 +49,12 @@ async function generateUniqueProductName(
   const numbers: number[] = [];
 
   similarProducts.forEach((product: { name: string }) => {
-    if (product.name === baseName) {
+    const productData = product as { name: string };
+    if (productData.name === baseName) {
       numbers.push(1); // The base name counts as (1)
     } else {
       // Extract number from patterns like "Apple(2)"
-      const match = product.name.match(new RegExp(`^${baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\(([0-9]+)\\)$`));
+      const match = productData.name.match(new RegExp(`^${baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\(([0-9]+)\\)$`));
       if (match) {
         numbers.push(parseInt(match[1], 10));
       }
@@ -145,7 +151,7 @@ export async function POST(request: NextRequest) {
 
     // Using a transaction ensures that if any part of the upload fails,
     // the entire operation is rolled back, preventing partial data saves.
-    const result: { dataSet: { id: number; name: string; createdAt: Date }; createdProducts: Array<{ id: string; name: string; dailyRecords: unknown[] }> } = await prisma.$transaction(async (tx: { product: { findFirst: (args: unknown) => Promise<unknown>; findMany: (args: unknown) => Promise<unknown[]>; create: (args: unknown) => Promise<unknown> }; dataSet: { create: (args: unknown) => Promise<unknown> } }) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Create the DataSet record first
       const dataSet = await tx.dataSet.create({
         data: {
@@ -235,15 +241,17 @@ export async function POST(request: NextRequest) {
       return { dataSet, createdProducts };
     });
 
+    const resultData = result as { dataSet: { id: number; name: string; createdAt: Date }; createdProducts: Array<{ id: string; name: string; dailyRecords: unknown[] }> };
+
     return NextResponse.json({
       message: `File uploaded and processed successfully! Processed data for Days 1-${maxDay}.`,
       dataSet: {
-        id: result.dataSet.id,
-        name: result.dataSet.name,
-        createdAt: result.dataSet.createdAt,
+        id: resultData.dataSet.id,
+        name: resultData.dataSet.name,
+        createdAt: resultData.dataSet.createdAt,
       },
-      productsCount: result.createdProducts.length,
-      recordsCount: result.createdProducts.reduce(
+      productsCount: resultData.createdProducts.length,
+      recordsCount: resultData.createdProducts.reduce(
         (sum: number, p: { dailyRecords: unknown[] }) => sum + p.dailyRecords.length,
         0
       ),
