@@ -33,11 +33,11 @@ jobs:
       - name: Prepare deploy artifact
         run: |
           mkdir -p deploy
-          cp -r .next/standalone deploy/
-          cp -r .next/static deploy/.next/
+          cp -r .next deploy/
           cp -r public deploy/public
           cp -r prisma deploy/prisma
           cp package.json package-lock.json deploy/
+          cp -r node_modules deploy/node_modules
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
