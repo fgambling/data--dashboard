@@ -48,12 +48,30 @@ export async function GET(
       }
     });
 
+    type ProductWithRecords = {
+      id: string;
+      name: string;
+      dataSetId: number;
+      dailyRecords: Array<{
+        id: number;
+        day: number;
+        inventory: number;
+        procurementQuantity: number;
+        procurementPrice: number;
+        procurementAmount: number;
+        salesQuantity: number;
+        salesPrice: number;
+        salesAmount: number;
+        productId: string;
+      }>;
+    };
+
     // Transform data for chart consumption
     const dayMap = new Map();
 
     // Collect all unique days
     const allDays = new Set<number>();
-    products.forEach(product => {
+    products.forEach((product: ProductWithRecords) => {
       product.dailyRecords.forEach(record => {
         allDays.add(record.day);
       });
@@ -73,7 +91,7 @@ export async function GET(
     });
 
     // Aggregate data by day
-    products.forEach(product => {
+    products.forEach((product: ProductWithRecords) => {
       product.dailyRecords.forEach(record => {
         const dayData = dayMap.get(record.day);
         if (dayData) {
@@ -93,13 +111,13 @@ export async function GET(
         name: dataSet.name,
         createdAt: dataSet.createdAt
       },
-      products: products.map(product => ({
+      products: products.map((product: ProductWithRecords) => ({
         id: product.id,
         name: product.name,
         recordCount: product.dailyRecords.length
       })),
       // Raw product data for individual product selection
-      rawProducts: products.map(product => ({
+      rawProducts: products.map((product: ProductWithRecords) => ({
         id: product.id,
         name: product.name,
         dailyRecords: product.dailyRecords
@@ -108,7 +126,7 @@ export async function GET(
       chartData: aggregatedData,
       summary: {
         totalProducts: products.length,
-        totalRecords: products.reduce((sum, p) => sum + p.dailyRecords.length, 0),
+        totalRecords: products.reduce((sum: number, p: ProductWithRecords) => sum + p.dailyRecords.length, 0),
         dayRange: sortedDays.length > 0 ? {
           start: Math.min(...sortedDays),
           end: Math.max(...sortedDays)

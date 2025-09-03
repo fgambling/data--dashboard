@@ -21,7 +21,7 @@ export async function GET() {
     });
 
     return NextResponse.json({
-      datasets: datasets.map(dataset => ({
+      datasets: datasets.map((dataset: { id: number; name: string; createdAt: Date; _count: { products: number } }) => ({
         id: dataset.id,
         name: dataset.name,
         createdAt: dataset.createdAt,

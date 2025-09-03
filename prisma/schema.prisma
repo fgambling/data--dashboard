@@ -37,10 +37,10 @@ model DailyData {
   inventory            Int
   procurementQuantity  Int
   procurementPrice     Float
-  procurementAmount    Float    // 采购金额 = 采购数量 * 采购价格
+  procurementAmount    Float    
   salesQuantity        Int
   salesPrice           Float
-  salesAmount          Float    // 销售金额 = 销售数量 * 销售价格
+  salesAmount          Float   
   productId            String
   product              Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 

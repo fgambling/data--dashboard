@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import prisma from '../../../../lib/prisma';
+import { Prisma } from '@prisma/client';
 
 /**
  * Generate a unique product name to avoid conflicts
@@ -11,12 +12,7 @@ import prisma from '../../../../lib/prisma';
  * @returns Unique product name
  */
 async function generateUniqueProductName(
-  tx: {
-    product: {
-      findFirst: (args: { where: { name: string; dataSetId: number } }) => Promise<{ name: string } | null>;
-      findMany: (args: { where: { dataSetId: number; OR: Array<{ name: string } | { name: { startsWith: string } }> }; select: { name: true } }) => Promise<Array<{ name: string }>>;
-    }
-  },
+  tx: Prisma.TransactionClient,
   baseName: string,
   dataSetId: number
 ): Promise<string> {
@@ -151,7 +147,7 @@ export async function POST(request: NextRequest) {
 
     // Using a transaction ensures that if any part of the upload fails,
     // the entire operation is rolled back, preventing partial data saves.
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Create the DataSet record first
       const dataSet = await tx.dataSet.create({
         data: {
