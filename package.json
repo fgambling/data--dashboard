@@ -19,7 +19,20 @@
     "react-draggable": "^4.5.0",
     "react-resizable": "^3.0.5",
     "recharts": "^3.1.2",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/react-resizable": "^3.0.8",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.2",
+    "prisma": "^6.15.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
