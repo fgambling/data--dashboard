@@ -2,7 +2,7 @@ name: Build and deploy Next.js app to Azure Web App - dataviz-app
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -14,15 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          node-version: "20.x"
+          cache: "npm"
 
       - name: Install deps
         run: npm ci
@@ -30,14 +29,17 @@ jobs:
       - name: Build (Prisma generate + Next build)
         run: npm run build
 
+      - name: Prune dev deps
+        run: npm prune --omit=dev
+
       - name: Prepare deploy artifact
         run: |
-          mkdir -p deploy
-          cp -r .next deploy/
+          rm -rf deploy && mkdir -p deploy
+          cp -r .next deploy/.next
+          cp -r node_modules deploy/node_modules
           cp -r public deploy/public
           cp -r prisma deploy/prisma
           cp package.json package-lock.json deploy/
-          cp -r node_modules deploy/node_modules
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -51,7 +53,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -69,6 +70,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'dataviz-app'
-          slot-name: 'Production'
+          app-name: "dataviz-app"
+          slot-name: "Production"
           package: .
