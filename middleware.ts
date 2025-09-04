@@ -10,37 +10,53 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Protected routes
-  const protectedRoutes = ['/dashboard'];
-  
+  const protectedRoutes = ['/dashboard', '/api/datasets', '/api/data', '/api/upload'];
+
   // Public routes (should not be visited by authenticated users)
   const publicRoutes = ['/login', '/register'];
+
+  // Public API routes (don't require authentication)
+  const publicApiRoutes = ['/api/auth/login', '/api/auth/register', '/api/auth/logout'];
 
   // Read JWT token from cookies
   const token = request.cookies.get('token')?.value;
 
   // Check whether current path is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-  
+
   // Check whether current path is public
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  // If visiting a protected route
-  if (isProtectedRoute) {
-    // No token: redirect to login
+  // Check whether current path is public API
+  const isPublicApiRoute = publicApiRoutes.some(route => pathname.startsWith(route));
+
+  // If visiting a protected route (and it's not a public API route)
+  if (isProtectedRoute && !isPublicApiRoute) {
+    // No token: return 401 for API routes, redirect for pages
     if (!token) {
-      const loginUrl = new URL('/login', request.url);
-      // Add redirect query param so we can return after login
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      } else {
+        const loginUrl = new URL('/login', request.url);
+        // Add redirect query param so we can return after login
+        loginUrl.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(loginUrl);
+      }
     }
 
     // Validate token
     const payload = verifyToken(token);
     if (!payload) {
-      // Invalid token: clear cookie and redirect to login
-      const response = NextResponse.redirect(new URL('/login', request.url));
-      response.cookies.delete('token');
-      return response;
+      // Invalid token: clear cookie and redirect to login (or return 401 for API)
+      if (pathname.startsWith('/api/')) {
+        const response = NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        response.cookies.delete('token');
+        return response;
+      } else {
+        const response = NextResponse.redirect(new URL('/login', request.url));
+        response.cookies.delete('token');
+        return response;
+      }
     }
 
     // Token valid: allow
@@ -74,12 +90,11 @@ export const config = {
   matcher: [
     /*
      * Match all paths except:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - other static assets
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\..*$).*)',
   ],
 };

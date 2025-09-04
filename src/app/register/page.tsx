@@ -13,7 +13,8 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    referenceCode: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +45,13 @@ export default function RegisterPage() {
       return;
     }
 
+    // Validate reference code
+    if (formData.referenceCode.toLowerCase() !== 'aibuild') {
+      setError('Invalid reference code');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       // Send POST request to register API
       const response = await fetch('/api/auth/register', {
@@ -53,7 +61,8 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({
           username: formData.username,
-          password: formData.password
+          password: formData.password,
+          referenceCode: formData.referenceCode
         }),
       });
 
@@ -137,6 +146,27 @@ export default function RegisterPage() {
               placeholder="Re-enter password"
               disabled={isLoading}
             />
+          </div>
+
+          {/* Reference code input */}
+          <div>
+            <label htmlFor="referenceCode" className="block text-sm font-medium text-gray-700 mb-2">
+              Reference Code
+            </label>
+            <input
+              type="text"
+              id="referenceCode"
+              name="referenceCode"
+              value={formData.referenceCode}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              placeholder="Enter reference code"
+              disabled={isLoading}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Required for registration
+            </p>
           </div>
 
           {/* Error message */}

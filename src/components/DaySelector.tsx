@@ -1,5 +1,11 @@
-'use client';
+/**
+ * @fileoverview Day range selection component
+ * @description Allows users to filter chart data by selecting specific day ranges
+ * Provides intuitive controls for setting start and end dates
+ */
 
+'use client';
+import React from 'react';
 interface DayRange {
   start: number | null;
   end: number | null;
@@ -16,44 +22,51 @@ export default function DaySelector({
   onDayRangeChange,
   availableDays
 }: DaySelectorProps) {
-  const handleStartDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value === '' ? null : parseInt(e.target.value);
-    onDayRangeChange({
-      ...dayRange,
-      start: value
-    });
+  const [error, setError] = React.useState<string>('');
+  const rangeStart = availableDays?.start ?? 1;
+  const rangeEnd = availableDays?.end ?? 999;
+  const MAX_OPTIONS = 500;
+  const options: number[] = [];
+  const total = Math.min(MAX_OPTIONS, Math.max(0, rangeEnd - rangeStart + 1));
+  for (let i = 0; i < total; i++) {
+    options.push(rangeStart + i);
+  }
+
+  const handleStartDayChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStart = parseInt(e.target.value);
+    const currentEnd = dayRange.end ?? rangeEnd;
+    if (newStart >= currentEnd) {
+      setError('Start day must be earlier than end day');
+      // revert visual selection by not updating parent; controlled value will snap back
+      // also reset select element to current value
+      e.currentTarget.value = String(dayRange.start ?? rangeStart);
+      return;
+    }
+    setError('');
+    onDayRangeChange({ ...dayRange, start: newStart });
   };
 
-  const handleEndDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value === '' ? null : parseInt(e.target.value);
-    onDayRangeChange({
-      ...dayRange,
-      end: value
-    });
-  };
-
-  const clearStartDay = () => {
-    onDayRangeChange({
-      ...dayRange,
-      start: null
-    });
-  };
-
-  const clearEndDay = () => {
-    onDayRangeChange({
-      ...dayRange,
-      end: null
-    });
+  const handleEndDayChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newEnd = parseInt(e.target.value);
+    const currentStart = dayRange.start ?? rangeStart;
+    if (newEnd <= currentStart) {
+      setError('End day must be later than start day');
+      e.currentTarget.value = String(dayRange.end ?? Math.min(rangeStart + 1, rangeEnd));
+      return;
+    }
+    setError('');
+    onDayRangeChange({ ...dayRange, end: newEnd });
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
+    <div className="bg-white rounded-xl shadow-lg p-6 min-h-[24rem]">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900">Day Selection</h3>
-        <span className="text-sm text-gray-500">
-          {availableDays ? `Days ${availableDays.start} - ${availableDays.end}` : 'All days'}
-        </span>
       </div>
+
+      {error && (
+        <div className="mb-4 text-sm text-red-600">{error}</div>
+      )}
 
       <div className="space-y-4">
         {/* Start Day */}
@@ -61,24 +74,15 @@ export default function DaySelector({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Start Day
           </label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              value={dayRange.start || ''}
-              onChange={handleStartDayChange}
-              placeholder={availableDays ? availableDays.start.toString() : "1"}
-              min={availableDays?.start || 1}
-              max={availableDays?.end || 999}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button
-              onClick={clearStartDay}
-              className="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Clear start day"
-            >
-              ✕
-            </button>
-          </div>
+          <select
+            value={dayRange.start ?? (availableDays ? Math.min(availableDays.start, rangeEnd - 1) : '')}
+            onChange={handleStartDayChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          >
+            {options.map((d) => (
+              <option key={`start-${d}`} value={d}>{`Day ${d}`}</option>
+            ))}
+          </select>
         </div>
 
         {/* End Day */}
@@ -86,24 +90,15 @@ export default function DaySelector({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             End Day
           </label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              value={dayRange.end || ''}
-              onChange={handleEndDayChange}
-              placeholder={availableDays ? availableDays.end.toString() : "999"}
-              min={availableDays?.start || 1}
-              max={availableDays?.end || 999}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button
-              onClick={clearEndDay}
-              className="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Clear end day"
-            >
-              ✕
-            </button>
-          </div>
+          <select
+            value={dayRange.end ?? (availableDays ? Math.max(availableDays.start + 1, availableDays.end) : '')}
+            onChange={handleEndDayChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          >
+            {options.map((d) => (
+              <option key={`end-${d}`} value={d}>{`Day ${d}`}</option>
+            ))}
+          </select>
         </div>
 
         {/* Clear All Button */}

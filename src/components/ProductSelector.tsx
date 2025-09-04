@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Product selection component
+ * @description Allows users to select/deselect products for chart visualization
+ * Provides visual product list with color indicators and selection controls
+ */
+
 'use client';
 
 import { generateHslColorFromString, hslToHex } from '../utils/colorUtils';
@@ -51,33 +57,31 @@ export default function ProductSelector({
   if (products.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Selection</h3>
-        <p className="text-gray-500 text-sm">No products available in this dataset.</p>
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-sm text-gray-500">No products available</div>
+          <div className="text-sm text-gray-500">0 of 0 selected</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Product Selection</h3>
-        <span className="text-sm text-gray-500">
-          {selectedProductIds.length} of {products.length} selected
-        </span>
-      </div>
-
-      {/* Select All / Deselect All Button */}
-      <div className="mb-4">
+    <div className="bg-white rounded-xl shadow-lg p-6 min-h-[24rem]">
+      {/* Top controls row */}
+      <div className="flex items-center justify-between mb-4">
         <button
           onClick={handleSelectAll}
           className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             isAllSelected
-              ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
           {isAllSelected ? 'Deselect All' : 'Select All'}
         </button>
+        <span className="text-sm text-gray-500">
+          {selectedProductIds.length} of {products.length} selected
+        </span>
       </div>
 
       {/* Product List */}

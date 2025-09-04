@@ -8,14 +8,22 @@ import { hashPassword } from '../../../../../lib/password';
  */
 export async function POST(request: NextRequest) {
   try {
-    // Read username and password from request body
-    const { username, password } = await request.json();
+    // Read username, password, and reference code from request body
+    const { username, password, referenceCode } = await request.json();
 
     // Validate required fields
-    if (!username || !password) {
+    if (!username || !password || !referenceCode) {
       return NextResponse.json(
-        { error: 'Username and password are required' },
+        { error: 'Username, password, and reference code are required' },
         { status: 400 }
+      );
+    }
+
+    // Validate reference code
+    if (referenceCode.toLowerCase() !== 'aibuild') {
+      return NextResponse.json(
+        { error: 'Invalid reference code' },
+        { status: 403 }
       );
     }
 

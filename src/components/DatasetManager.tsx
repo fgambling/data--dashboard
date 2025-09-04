@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Dataset management component
+ * @description Provides dataset selection, creation, and management interface
+ * Allows users to switch between different data collections for analysis
+ */
+
 'use client';
 
 import { useState } from 'react';
