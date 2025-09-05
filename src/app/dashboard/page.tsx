@@ -326,7 +326,7 @@ export default function DashboardPage() {
                   };
                   input.click();
                 }}
-                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                className="inline-flex items-center px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-600 transition-colors"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -361,7 +361,7 @@ export default function DashboardPage() {
                     window.location.href = '/';
                   }
                 }}
-                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                className="inline-flex items-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg border border-red-600 transition-colors"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -407,23 +407,8 @@ export default function DashboardPage() {
         <div className="space-y-4">
           {/* Visualization Box */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300">
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Data Visualization</h2>
-                  <p className="text-blue-100 text-sm">Explore your data insights</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="p-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-10">Data Visualization</h2>
 
             {/* Error message */}
             {error && (
@@ -607,8 +592,8 @@ export default function DashboardPage() {
             {/* Left line with gradient */}
             <div className="flex-1 h-0.5 bg-gradient-to-r from-blue-400 via-blue-300 to-transparent rounded-full"></div>
 
-            {/* Central decorative element */}
-            <div className="flex items-center space-x-4 bg-white/80 backdrop-blur-sm rounded-full px-6 py-2 shadow-lg border border-gray-200/50">
+            {/* Central decorative element (no framed pill) */}
+            <div className="flex items-center space-x-4">
               {/* Left sparkle */}
               <svg className="w-4 h-4 text-blue-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
