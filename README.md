@@ -17,7 +17,7 @@ A modern, interactive data visualization dashboard built with Next.js 15, React 
 - **Framework**: Next.js 15 (App Router)
 - **Frontend**: React 19, TypeScript
 - **Styling**: Tailwind CSS
-- **Database**: SQLite with Prisma ORM
+- **Database**: PostgreSQL with Prisma ORM
 - **Charts**: Recharts
 - **AI**: Google Generative AI
 - **Authentication**: JWT with bcryptjs
@@ -93,7 +93,7 @@ src/
    JWT_SECRET="your-secret-key"
 
    # Google AI API Key
-   GOOGLE_AI_API_KEY="your-api-key"
+   GEMINI_API_KEY="your-api-key"
    ```
 
 5. **Start the development server**
